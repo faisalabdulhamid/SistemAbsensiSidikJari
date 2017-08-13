@@ -11,6 +11,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SistemAbsensiSidikJari.Controller;
+using System.Configuration;
 
 namespace SistemAbsensiSidikJari.View
 {
@@ -45,7 +46,9 @@ namespace SistemAbsensiSidikJari.View
             }
             else 
             {
-                RestClient json = new RestClient("http://sidik-jari.laravel/api/login", "POST", "nip=" + nip + "&password=" + pass);
+                string alamat = ConfigurationSettings.AppSettings["AlamatApi"];
+
+                RestClient json = new RestClient(alamat+"login", "POST", "nip=" + nip + "&password=" + pass);
 
                 try
                 {
@@ -58,8 +61,8 @@ namespace SistemAbsensiSidikJari.View
                     User user2 = JsonConvert.DeserializeObject<User>(jData.ToString());
                     User apitoken = JsonConvert.DeserializeObject<User>(jMeta.ToString());
 
-                    Console.WriteLine("nama User "+user2.Nama);
-                    Console.WriteLine("Token " + apitoken.Token);
+                    //Console.WriteLine("nama User "+user2.Nama);
+                    //Console.WriteLine("Token " + apitoken.Token);
 
                     MainForm mainForm = new MainForm();
                     mainForm.nip = user2.NIP;

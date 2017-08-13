@@ -85,7 +85,7 @@ namespace SistemAbsensiSidikJari
 
             // Get the stream containing all content returned by the requested server.
             dataStream = response.GetResponseStream();
-
+            /*
             // Open the stream using a StreamReader for easy access.
             StreamReader reader = new StreamReader(dataStream);
 
@@ -94,6 +94,34 @@ namespace SistemAbsensiSidikJari
 
             // Clean up the streams.
             reader.Close();
+            */
+            try
+            {
+                // Open the stream using a StreamReader for easy access;
+                StreamReader reader = new StreamReader(dataStream, Encoding.UTF8);
+
+               // Read the content fully up to the end.
+               responseFromServer = reader.ReadToEnd();
+
+               // Clean up the streams.
+               reader.Close();
+                
+            }catch(ArgumentException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            /*
+            using (StreamReader reader = new StreamReader(dataStream))
+            {
+                
+
+                // Read the content fully up to the end.
+                responseFromServer = reader.ReadToEnd();
+
+                // Clean up the streams.
+                reader.Close();
+            }
+            */
             dataStream.Close();
             response.Close();      
 

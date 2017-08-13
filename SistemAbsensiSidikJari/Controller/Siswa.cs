@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,72 +8,31 @@ using System.Threading.Tasks;
 
 namespace SistemAbsensiSidikJari.Controller
 {
-    class Siswa
+    
+    public class Siswa
     {
-        public string Nis
+        public Siswa()
         {
-            set;
-            get;
+
         }
-        public string Nama
+
+        public Siswa(string json)
         {
-            set;
-            get;
+            try
+            {
+                JObject jObject = JObject.Parse(json);
+                JToken jSiswa = jObject["siswa"];
+                nis = (string)jSiswa["nis"];
+                nama = (string)jSiswa["nama"];
+                telepon = (string)jSiswa["telepon"];
+            }
+            catch(JsonReaderException e) {
+                Console.WriteLine(e.Message);
+            }
+
         }
-        public string JenisKelamin
-        {
-            set;
-            get;
-        }
-        public string TempatLahir
-        {
-            set;
-            get;
-        }
-        public string TanggalLahir
-        {
-            set;
-            get;
-        }
-        public string Agama
-        {
-            set;
-            get;
-        }
-        public string WargaNegara
-        {
-            set;
-            get;
-        }
-        public string Kelas
-        {
-            set;
-            get;
-        }
-        public string Alamat
-        {
-            set;
-            get;
-        }
-        public string Foto
-        {
-            set;
-            get;
-        }
-        public string Ayah
-        {
-            set;
-            get;
-        }
-        public string Ibu
-        {
-            set;
-            get;
-        }
-        public string NoTelepon
-        {
-            set;
-            get;
-        }
+        public string nama { get; set; }
+        public string telepon { get; set; }
+        public string nis { get; set; }
     }
 }

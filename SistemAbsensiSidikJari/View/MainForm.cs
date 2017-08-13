@@ -14,31 +14,112 @@ using Newtonsoft.Json.Linq;
 using SistemAbsensiSidikJari.Controller;
 using System.Net;
 using System.IO.Ports;
+using System.Configuration;
+using System.Threading;
+
 
 namespace SistemAbsensiSidikJari.View
 {
     public partial class MainForm : Form
     {
         public string api, nama, jabatan, nip;
+        public string kelas = "all";
+        
+
         User user;
-        public bool set_port = false;
-        public bool sms_starter = false;
+
+        //GetDataContainer fingerData = new GetDataContainer();
+        ArduinoFingerPrint finger = new ArduinoFingerPrint();
+        ArduinoSim900A sim900 = new ArduinoSim900A();
+        //Siswa siswa = new Siswa();
 
         public MainForm()
         {
             InitializeComponent();
             user = new User();
 
-            if(set_port == false)
+            sim900.NewDataReceived += data_NewDataReceivedSim900;
+            try
             {
-                btnConnect.Text = "Connect";
-                btnFalse();
+                sim900.OpenArduinoConnection();
             }
-            else
+            catch
             {
-                btnConnect.Text = "Disconnect";
-                btnTrue();
+                MessageBox.Show("Error: Can not connect to the Arduino Board - Configure the COM Port in the app.config file and check whether an Arduino Board is connected to your computer.");
             }
+
+            finger.NewDataReceived += data_NewDataReceived;
+            try
+            {
+                finger.OpenArduinoConnection();
+            }
+            catch
+            {
+                MessageBox.Show("Error: Can not connect to the Arduino Board - Configure the COM Port in the app.config file and check whether an Arduino Board is connected to your computer.");
+            }
+        }
+
+        //FROM ARDUINO FINGERPRINT
+        void data_NewDataReceived(object sender, EventArgs e)
+        {
+            //Console.WriteLine("Data Received");
+            Thread t = new Thread(() => SmsOrangTua(this, EventArgs.Empty));
+            t.Start();
+            
+        }
+
+        void data_NewDataReceivedSim900(object sender, EventArgs e)
+        {
+
+            //Thread t = new Thread(() => ButtonAktif());
+            //t.Start();
+
+        }
+        private void SmsOrangTua(object sender, EventArgs e)
+        {
+            Console.WriteLine("SMS Orang Tua");
+            foreach (Siswa sis in finger.SiswaItem)
+            {
+                Console.WriteLine(sis.nis);
+                Console.WriteLine(sis.nama);
+                Console.WriteLine(sis.telepon);
+
+                //Post Data
+                Thread postData = new Thread(() => PostDataAbsensi(this, EventArgs.Empty, sis.nis));
+                postData.Start();
+
+                SMS sms = new SMS();
+                sms.n = sis.nama;
+                sms.t = sis.telepon;
+                
+                string smsJson = JsonConvert.SerializeObject(sms) + "#";
+                Console.WriteLine(smsJson);
+                sim900.sendSMS(smsJson);
+            }
+        }
+
+        private void PostDataAbsensi(object sender, EventArgs e, string nis)
+        {
+            string alamat = ConfigurationSettings.AppSettings["AlamatApi"];
+
+            RestClient json = new RestClient(alamat + "absensi?api_token=" + this.api, "POST", "api_token=" + this.api + "&keterangan=masuk&nis=" + nis);
+
+            //RestClient json = new RestClient("http://sidik-jari.laravel/api/absensi?api_token" + this.api, "POST", "api_token=" + this.api + "&keterangan=" + this.status + "&nis=" + txtNis.Text.ToString());
+            try
+            {
+
+                JToken token = JObject.Parse(json.GetResponse());
+                object saved = (object)token.SelectToken("saved");
+                Console.WriteLine(saved.ToString());
+            }
+            catch (WebException)
+            { }
+        }
+
+        private void ButtonAktif()
+        {
+            Console.WriteLine("Button Aktif");
+            btnMasuk.Enabled = true;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -49,142 +130,60 @@ namespace SistemAbsensiSidikJari.View
             dataSiswa();
             dataGuru();
             dataAbsensi();
-            getPort();
-        }
+            dataKelas();
 
-        private void btnTambahSiswa_Click(object sender, EventArgs e)
-        {
-            FormSiswa ts = new FormSiswa();
-            ts.Text = "Tambah Siswa";
-            ts.status = "tambah";
-            ts.ShowDialog();
-        }
+            if (finger.isOpen())
+            {
+                btnMasuk.Enabled = true;
+                //btnNotAktif.Enabled = false;
+            }
+            else
+            {
+                btnMasuk.Enabled = false;
+                //btnNotAktif.Enabled = true;
+            }
 
-        private void btnEditSiswa_Click(object sender, EventArgs e)
-        {
-            FormSiswa ts = new FormSiswa();
-            ts.Text = "Ubah Siswa";
-            ts.tbNis.ReadOnly = true;
-            ts.status = "ubah";
-            int row_index =  this.dgSiswa.SelectedRows[0].Index;
-
-            ts.tbNis.Text = this.dgSiswa.Rows[row_index].Cells[0].Value.ToString();
-            ts.tbNama.Text = this.dgSiswa.Rows[row_index].Cells[1].Value.ToString();
-            ts.cbJenisKelamin.Text = this.dgSiswa.Rows[row_index].Cells[2].Value.ToString();
-            ts.tbTempatLahir.Text = this.dgSiswa.Rows[row_index].Cells[3].Value.ToString();
-            ts.tbTanggalLahir.Text = this.dgSiswa.Rows[row_index].Cells[4].Value.ToString();
-            ts.cbAgama.Text = this.dgSiswa.Rows[row_index].Cells[5].Value.ToString();
-            ts.cbWarganegara.Text = this.dgSiswa.Rows[row_index].Cells[6].Value.ToString();
-            ts.rtALamat.Text = this.dgSiswa.Rows[row_index].Cells[7].Value.ToString();
-            ts.tbAyah.Text = this.dgSiswa.Rows[row_index].Cells[8].Value.ToString();
-            ts.tbIbu.Text = this.dgSiswa.Rows[row_index].Cells[9].Value.ToString();
-            ts.tbTelepon.Text = this.dgSiswa.Rows[row_index].Cells[10].Value.ToString();
-            ts.cbKelas.Text = this.dgSiswa.Rows[row_index].Cells[11].Value.ToString();
             
-            ts.ShowDialog();
         }
 
-        DateTime Jam;
-        private void jamBerjalan_Tick(object sender, EventArgs e)
+        //Tambah Finger Print
+        private void btnFinger_Click(object sender, EventArgs e)
         {
-            Jam = DateTime.Now;
-            labelJamBerjalan.Text = Convert.ToString(Jam.ToLongTimeString());
+            
         }
 
         private void btnMasuk_Click(object sender, EventArgs e)
         {
-            AbsensiForm absen = new AbsensiForm();
-            absen.status = "masuk";
-            absen.api = this.api;
-            absen.ShowDialog();
-            if(absen.DialogResult == DialogResult.OK)
-            {
-                serialPort.Write("3");
-                MainForm_Load(sender.ToString(), EventArgs.Empty);
-            }
+            finger.openAbsensiFinger();
+
+            btnNotAktif.Enabled = true;
+            btnMasuk.Enabled = false;
+
         }
 
-        private void btnIzin_Click(object sender, EventArgs e)
+        private void btnNotAktif_Click(object sender, EventArgs e)
         {
-            AbsensiForm absen = new AbsensiForm();
-            absen.status = "izin";
-            absen.api = this.api;
-            absen.ShowDialog();
-            if (absen.DialogResult == DialogResult.OK)
-            {
-                MainForm_Load(sender.ToString(), EventArgs.Empty);
-            }
+            finger.closeAbsensiFinger();
+            btnNotAktif.Enabled = false;
+            btnMasuk.Enabled = true;
         }
 
-        private void btnSakit_Click(object sender, EventArgs e)
+        private void btnCari_Click(object sender, EventArgs e)
         {
-            AbsensiForm absen = new AbsensiForm();
-            absen.status = "sakit";
-            absen.api = this.api;
-            absen.ShowDialog();
-            if (absen.DialogResult == DialogResult.OK)
-            {
-                MainForm_Load(sender.ToString(), EventArgs.Empty);
-            }
-        }
+            string[] kls = cbkelas.Text.Split('-');
 
-        private void btnAlpa_Click(object sender, EventArgs e)
-        {
-            AbsensiForm absen = new AbsensiForm();
-            absen.status = "alpa";
-            absen.api = this.api;
-            absen.ShowDialog();
-            if (absen.DialogResult == DialogResult.OK)
-            {
-                serialPort.Write("2");
-                MainForm_Load(sender.ToString(), EventArgs.Empty);
-            }
-        }
-
-        private void btnConnect_Click(object sender, EventArgs e)
-        {
-            string port = cbPort.Text;
-            if (port.Equals(""))
-            {
-                MessageBox.Show("Anda Belum Memilih Port Arduino");
-            }
-            else
-            {
-                if (set_port == false)
-                {
-                    set_port = true;
-                    btnConnect.Text = "Disconnect";
-                    cbPort.Enabled = false;
-                    btnTrue();
-                    serialPort.PortName = cbPort.Text;
-                    serialPort.BaudRate = 9600;
-                    serialPort.Open();
-                    Console.WriteLine(serialPort.ReadLine());
-
-                }
-                else
-                {
-                    set_port = false;
-                    btnConnect.Text = "Connect";
-                    cbPort.Enabled = true;
-                    btnFalse();
-                    serialPort.Close();
-                    sms_starter = false;
-                }
-
-            }
-        }
-
-        private void btnRefresh_Click(object sender, EventArgs e)
-        {
-            getPort();
+            this.kelas = kls[0];
+            dataSiswa();
         }
 
         void dataSiswa()
         {
-            RestClient json = new RestClient("http://sidik-jari.laravel/api/siswa?api_token="+this.api, "POST", "api_token="+this.api);
+            string alamat = ConfigurationSettings.AppSettings["AlamatApi"];
+
+            RestClient json = new RestClient(alamat+"siswa?api_token=" +this.api+"&kelas="+this.kelas, "POST", "api_token="+this.api);
             try
             {
+                //Console.WriteLine(json.GetResponse());
                 DataSet setSiswa = JsonConvert.DeserializeObject<DataSet>(json.GetResponse());
                 DataTable dataSiswa = setSiswa.Tables["data"];
                 dgSiswa.DataSource = null;
@@ -193,26 +192,14 @@ namespace SistemAbsensiSidikJari.View
                 dgSiswa.Columns[0].HeaderText = "NIS";
                 dgSiswa.Columns[1].HeaderText = "Nama";
                 dgSiswa.Columns[2].HeaderText = "Jenis Kelamin";
-                dgSiswa.Columns[3].HeaderText = "Tempat Lahir";
-                dgSiswa.Columns[4].HeaderText = "Tanggal Lahir";
-                dgSiswa.Columns[5].HeaderText = "Agama";
-                dgSiswa.Columns[6].HeaderText = "Warganegara";
-                dgSiswa.Columns[7].HeaderText = "Alamat";
-                dgSiswa.Columns[8].HeaderText = "Ayah";
-                dgSiswa.Columns[9].HeaderText = "Ibu";
-                dgSiswa.Columns[10].HeaderText = "Kelas";
-                dgSiswa.Columns[11].HeaderText = "Foto";
+                dgSiswa.Columns[3].HeaderText = "Kelas";
+                dgSiswa.Columns[4].HeaderText = "Finger";
+                dgSiswa.Columns[5].HeaderText = "Foto";
 
-                dgSiswa.Columns[3].Visible = false;
+                
                 dgSiswa.Columns[5].Visible = false;
-                dgSiswa.Columns[6].Visible = false;
-                dgSiswa.Columns[7].Visible = false;
-                dgSiswa.Columns[8].Visible = false;
-                dgSiswa.Columns[9].Visible = false;
-                dgSiswa.Columns[10].Visible = false;
-                dgSiswa.Columns[11].Visible = false;
-                dgSiswa.Columns[12].Visible = false;
-                dgSiswa.Columns[13].Visible = false;
+                dgSiswa.Columns[4].Visible = false;
+                
 
             }
             catch (WebException)
@@ -221,7 +208,9 @@ namespace SistemAbsensiSidikJari.View
 
         void dataGuru()
         {
-            RestClient json = new RestClient("http://sidik-jari.laravel/api/guru?api_token=" + this.api, "POST", "api_token=" + this.api);
+            string alamat = ConfigurationSettings.AppSettings["AlamatApi"];
+
+            RestClient json = new RestClient(alamat+"guru?api_token=" + this.api, "POST", "api_token=" + this.api);
             try
             {
                 DataSet setGuru = JsonConvert.DeserializeObject<DataSet>(json.GetResponse());
@@ -244,7 +233,8 @@ namespace SistemAbsensiSidikJari.View
 
         void dataAbsensi()
         {
-            RestClient json = new RestClient("http://sidik-jari.laravel/api/absensi-data?api_token=" + this.api, "POST", "api_token=" + this.api);
+            string alamat = ConfigurationSettings.AppSettings["AlamatApi"];
+            RestClient json = new RestClient(alamat+"absensi-data?api_token=" + this.api, "POST", "api_token=" + this.api);
             try
             {
                 DataSet setAbsensi = JsonConvert.DeserializeObject<DataSet>(json.GetResponse());
@@ -262,45 +252,50 @@ namespace SistemAbsensiSidikJari.View
             { }
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        void dataKelas()
         {
-            if (serialPort.IsOpen)
-                serialPort.Close();
+            
+            string alamat = ConfigurationSettings.AppSettings["AlamatApi"];
+            //string
+            RestClient json = new RestClient(alamat + "kelas?api_token=" + this.api+ "&kategori=csharp", "POST", "api_token=" + this.api);
+            try
+            {
+                cbkelas.Items.Clear();
+                //string data = "[1,2,3]";
+                cbkelas.DataSource = JsonConvert.DeserializeObject<IEnumerable<string>>(json.GetResponse());
+            }
+            catch(WebException)
+            { }
         }
-
-        void getPort()
+        private void dgSiswa_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            cbPort.Items.Clear();
-            String[] ports = SerialPort.GetPortNames();
-
-            cbPort.Items.AddRange(ports);
+            int currRow = int.Parse(e.RowIndex.ToString());
+            Console.WriteLine(currRow);
+            Console.WriteLine(this.dgSiswa.Rows[currRow].Cells[1].Value.ToString());
+            Console.WriteLine(this.dgSiswa.Rows[currRow].Cells[4].Value.ToString());
+            if (this.dgSiswa.Rows[currRow].Cells[4].Value.ToString() == "0")
+            {
+                btnFinger.Enabled = true;
+            }
+            else
+            {
+                btnFinger.Enabled = false;
+            }
+            //Console.WriteLine(dgSiswa.Columns[4].Row)
         }
         
-        void btnFalse()
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            btnMasuk.Enabled = false;
-            btnSakit.Enabled = false;
-            btnIzin.Enabled = false;
-            btnAlpa.Enabled = false;
-
-            btnTambahSiswa.Enabled = false;
-            btnTambahGuru.Enabled = false;
-            btnEditSiswa.Enabled = false;
-            btnEditGuru.Enabled = false;
+            finger.CloseArduinoConnection();
+            sim900.CloseArduinoConnection();
         }
 
-        void btnTrue()
+        DateTime Jam;
+        private void jamBerjalan_Tick(object sender, EventArgs e)
         {
-            btnMasuk.Enabled = true;
-            btnSakit.Enabled = true;
-            btnIzin.Enabled = true;
-            btnAlpa.Enabled = true;
-
-            btnTambahSiswa.Enabled = true;
-            btnTambahGuru.Enabled = true;
-            btnEditSiswa.Enabled = true;
-            btnEditGuru.Enabled = true;
-
+            Jam = DateTime.Now;
+            labelJamBerjalan.Text = Convert.ToString(Jam.ToLongTimeString());
         }
+        
     }
 }

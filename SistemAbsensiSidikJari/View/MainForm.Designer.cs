@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.serialPort = new System.IO.Ports.SerialPort(this.components);
             this.panel1 = new System.Windows.Forms.Panel();
             this.pictureBoxLogin = new System.Windows.Forms.PictureBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -38,15 +37,11 @@
             this.labelJamBerjalan = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.btnRefresh = new System.Windows.Forms.Button();
-            this.btnConnect = new System.Windows.Forms.Button();
-            this.cbPort = new System.Windows.Forms.ComboBox();
             this.labelSelamat = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.DataSiswa = new System.Windows.Forms.TabPage();
-            this.btnAlpa = new System.Windows.Forms.Button();
-            this.btnSakit = new System.Windows.Forms.Button();
-            this.btnIzin = new System.Windows.Forms.Button();
+            this.coba = new System.Windows.Forms.Button();
+            this.btnNotAktif = new System.Windows.Forms.Button();
             this.btnMasuk = new System.Windows.Forms.Button();
             this.dgAbsensi = new System.Windows.Forms.DataGridView();
             this.label7 = new System.Windows.Forms.Label();
@@ -57,16 +52,14 @@
             this.txtBoxNis = new System.Windows.Forms.TextBox();
             this.fotoSiswa = new System.Windows.Forms.PictureBox();
             this.tabKehadiran = new System.Windows.Forms.TabPage();
-            this.btnLihatSiswa = new System.Windows.Forms.Button();
-            this.btnEditSiswa = new System.Windows.Forms.Button();
-            this.btnTambahSiswa = new System.Windows.Forms.Button();
+            this.btnFinger = new System.Windows.Forms.Button();
+            this.cbkelas = new System.Windows.Forms.ComboBox();
+            this.btnCari = new System.Windows.Forms.Button();
             this.dgSiswa = new System.Windows.Forms.DataGridView();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.btnEditGuru = new System.Windows.Forms.Button();
             this.dgGuru = new System.Windows.Forms.DataGridView();
             this.btnTambahGuru = new System.Windows.Forms.Button();
             this.jamBerjalan = new System.Windows.Forms.Timer(this.components);
-            this.labelSms = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxLogin)).BeginInit();
             this.panel2.SuspendLayout();
@@ -85,7 +78,6 @@
             this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.SystemColors.Control;
-            this.panel1.Controls.Add(this.labelSms);
             this.panel1.Controls.Add(this.pictureBoxLogin);
             this.panel1.Controls.Add(this.label5);
             this.panel1.Controls.Add(this.label3);
@@ -158,45 +150,11 @@
             // 
             this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.panel2.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.panel2.Controls.Add(this.btnRefresh);
-            this.panel2.Controls.Add(this.btnConnect);
-            this.panel2.Controls.Add(this.cbPort);
             this.panel2.Controls.Add(this.labelSelamat);
             this.panel2.Location = new System.Drawing.Point(0, 108);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(785, 43);
             this.panel2.TabIndex = 1;
-            // 
-            // btnRefresh
-            // 
-            this.btnRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRefresh.Location = new System.Drawing.Point(737, 11);
-            this.btnRefresh.Name = "btnRefresh";
-            this.btnRefresh.Size = new System.Drawing.Size(43, 26);
-            this.btnRefresh.TabIndex = 7;
-            this.btnRefresh.Text = "REF";
-            this.btnRefresh.UseVisualStyleBackColor = true;
-            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
-            // 
-            // btnConnect
-            // 
-            this.btnConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnConnect.Location = new System.Drawing.Point(661, 11);
-            this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(70, 26);
-            this.btnConnect.TabIndex = 6;
-            this.btnConnect.Text = "Connect";
-            this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
-            // 
-            // cbPort
-            // 
-            this.cbPort.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbPort.FormattingEnabled = true;
-            this.cbPort.Location = new System.Drawing.Point(527, 15);
-            this.cbPort.Name = "cbPort";
-            this.cbPort.Size = new System.Drawing.Size(128, 21);
-            this.cbPort.TabIndex = 5;
             // 
             // labelSelamat
             // 
@@ -232,9 +190,8 @@
             // 
             // DataSiswa
             // 
-            this.DataSiswa.Controls.Add(this.btnAlpa);
-            this.DataSiswa.Controls.Add(this.btnSakit);
-            this.DataSiswa.Controls.Add(this.btnIzin);
+            this.DataSiswa.Controls.Add(this.coba);
+            this.DataSiswa.Controls.Add(this.btnNotAktif);
             this.DataSiswa.Controls.Add(this.btnMasuk);
             this.DataSiswa.Controls.Add(this.dgAbsensi);
             this.DataSiswa.Controls.Add(this.label7);
@@ -253,47 +210,37 @@
             this.DataSiswa.Text = "Absensi";
             this.DataSiswa.UseVisualStyleBackColor = true;
             // 
-            // btnAlpa
+            // coba
             // 
-            this.btnAlpa.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAlpa.Location = new System.Drawing.Point(239, 351);
-            this.btnAlpa.Name = "btnAlpa";
-            this.btnAlpa.Size = new System.Drawing.Size(67, 41);
-            this.btnAlpa.TabIndex = 15;
-            this.btnAlpa.Text = "Alpa";
-            this.btnAlpa.UseVisualStyleBackColor = true;
-            this.btnAlpa.Click += new System.EventHandler(this.btnAlpa_Click);
+            this.coba.Location = new System.Drawing.Point(13, 81);
+            this.coba.Name = "coba";
+            this.coba.Size = new System.Drawing.Size(67, 44);
+            this.coba.TabIndex = 16;
+            this.coba.Text = "coba";
+            this.coba.UseVisualStyleBackColor = true;
+            this.coba.Click += new System.EventHandler(this.SmsOrangTua);
             // 
-            // btnSakit
+            // btnNotAktif
             // 
-            this.btnSakit.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSakit.Location = new System.Drawing.Point(166, 351);
-            this.btnSakit.Name = "btnSakit";
-            this.btnSakit.Size = new System.Drawing.Size(67, 41);
-            this.btnSakit.TabIndex = 14;
-            this.btnSakit.Text = "Sakit";
-            this.btnSakit.UseVisualStyleBackColor = true;
-            this.btnSakit.Click += new System.EventHandler(this.btnSakit_Click);
-            // 
-            // btnIzin
-            // 
-            this.btnIzin.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnIzin.Location = new System.Drawing.Point(89, 351);
-            this.btnIzin.Name = "btnIzin";
-            this.btnIzin.Size = new System.Drawing.Size(67, 41);
-            this.btnIzin.TabIndex = 13;
-            this.btnIzin.Text = "Izin";
-            this.btnIzin.UseVisualStyleBackColor = true;
-            this.btnIzin.Click += new System.EventHandler(this.btnIzin_Click);
+            this.btnNotAktif.Enabled = false;
+            this.btnNotAktif.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNotAktif.Location = new System.Drawing.Point(179, 351);
+            this.btnNotAktif.Name = "btnNotAktif";
+            this.btnNotAktif.Size = new System.Drawing.Size(127, 41);
+            this.btnNotAktif.TabIndex = 15;
+            this.btnNotAktif.Text = "Tidak Aktif";
+            this.btnNotAktif.UseVisualStyleBackColor = true;
+            this.btnNotAktif.Click += new System.EventHandler(this.btnNotAktif_Click);
             // 
             // btnMasuk
             // 
+            this.btnMasuk.Enabled = false;
             this.btnMasuk.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnMasuk.Location = new System.Drawing.Point(13, 351);
             this.btnMasuk.Name = "btnMasuk";
-            this.btnMasuk.Size = new System.Drawing.Size(67, 41);
+            this.btnMasuk.Size = new System.Drawing.Size(118, 41);
             this.btnMasuk.TabIndex = 12;
-            this.btnMasuk.Text = "Masuk";
+            this.btnMasuk.Text = "Aktif";
             this.btnMasuk.UseVisualStyleBackColor = true;
             this.btnMasuk.Click += new System.EventHandler(this.btnMasuk_Click);
             // 
@@ -387,9 +334,9 @@
             // 
             // tabKehadiran
             // 
-            this.tabKehadiran.Controls.Add(this.btnLihatSiswa);
-            this.tabKehadiran.Controls.Add(this.btnEditSiswa);
-            this.tabKehadiran.Controls.Add(this.btnTambahSiswa);
+            this.tabKehadiran.Controls.Add(this.btnFinger);
+            this.tabKehadiran.Controls.Add(this.cbkelas);
+            this.tabKehadiran.Controls.Add(this.btnCari);
             this.tabKehadiran.Controls.Add(this.dgSiswa);
             this.tabKehadiran.Location = new System.Drawing.Point(4, 49);
             this.tabKehadiran.Name = "tabKehadiran";
@@ -399,34 +346,37 @@
             this.tabKehadiran.Text = "Data Siswa";
             this.tabKehadiran.UseVisualStyleBackColor = true;
             // 
-            // btnLihatSiswa
+            // btnFinger
             // 
-            this.btnLihatSiswa.Location = new System.Drawing.Point(208, 6);
-            this.btnLihatSiswa.Name = "btnLihatSiswa";
-            this.btnLihatSiswa.Size = new System.Drawing.Size(94, 46);
-            this.btnLihatSiswa.TabIndex = 3;
-            this.btnLihatSiswa.Text = "Lihat";
-            this.btnLihatSiswa.UseVisualStyleBackColor = true;
+            this.btnFinger.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnFinger.Enabled = false;
+            this.btnFinger.Location = new System.Drawing.Point(672, 17);
+            this.btnFinger.Name = "btnFinger";
+            this.btnFinger.Size = new System.Drawing.Size(87, 24);
+            this.btnFinger.TabIndex = 9;
+            this.btnFinger.Text = "Finger";
+            this.btnFinger.UseVisualStyleBackColor = true;
+            this.btnFinger.Click += new System.EventHandler(this.btnFinger_Click);
             // 
-            // btnEditSiswa
+            // cbkelas
             // 
-            this.btnEditSiswa.Location = new System.Drawing.Point(108, 6);
-            this.btnEditSiswa.Name = "btnEditSiswa";
-            this.btnEditSiswa.Size = new System.Drawing.Size(94, 46);
-            this.btnEditSiswa.TabIndex = 2;
-            this.btnEditSiswa.Text = "Ubah";
-            this.btnEditSiswa.UseVisualStyleBackColor = true;
-            this.btnEditSiswa.Click += new System.EventHandler(this.btnEditSiswa_Click);
+            this.cbkelas.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbkelas.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.cbkelas.Location = new System.Drawing.Point(8, 18);
+            this.cbkelas.Name = "cbkelas";
+            this.cbkelas.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.cbkelas.Size = new System.Drawing.Size(175, 24);
+            this.cbkelas.TabIndex = 8;
             // 
-            // btnTambahSiswa
+            // btnCari
             // 
-            this.btnTambahSiswa.Location = new System.Drawing.Point(8, 6);
-            this.btnTambahSiswa.Name = "btnTambahSiswa";
-            this.btnTambahSiswa.Size = new System.Drawing.Size(94, 46);
-            this.btnTambahSiswa.TabIndex = 1;
-            this.btnTambahSiswa.Text = "Tambah";
-            this.btnTambahSiswa.UseVisualStyleBackColor = true;
-            this.btnTambahSiswa.Click += new System.EventHandler(this.btnTambahSiswa_Click);
+            this.btnCari.Location = new System.Drawing.Point(189, 18);
+            this.btnCari.Name = "btnCari";
+            this.btnCari.Size = new System.Drawing.Size(87, 24);
+            this.btnCari.TabIndex = 1;
+            this.btnCari.Text = "Cari";
+            this.btnCari.UseVisualStyleBackColor = true;
+            this.btnCari.Click += new System.EventHandler(this.btnCari_Click);
             // 
             // dgSiswa
             // 
@@ -444,10 +394,12 @@
             this.dgSiswa.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgSiswa.Size = new System.Drawing.Size(760, 339);
             this.dgSiswa.TabIndex = 0;
+            this.dgSiswa.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgSiswa_CellContentClick);
+            this.dgSiswa.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgSiswa_CellContentClick);
+            this.dgSiswa.CellContentDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgSiswa_CellContentClick);
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.btnEditGuru);
             this.tabPage1.Controls.Add(this.dgGuru);
             this.tabPage1.Controls.Add(this.btnTambahGuru);
             this.tabPage1.Location = new System.Drawing.Point(4, 49);
@@ -457,15 +409,6 @@
             this.tabPage1.TabIndex = 2;
             this.tabPage1.Text = "Data Guru";
             this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // btnEditGuru
-            // 
-            this.btnEditGuru.Location = new System.Drawing.Point(108, 6);
-            this.btnEditGuru.Name = "btnEditGuru";
-            this.btnEditGuru.Size = new System.Drawing.Size(94, 46);
-            this.btnEditGuru.TabIndex = 4;
-            this.btnEditGuru.Text = "Ubah";
-            this.btnEditGuru.UseVisualStyleBackColor = true;
             // 
             // dgGuru
             // 
@@ -496,15 +439,6 @@
             // jamBerjalan
             // 
             this.jamBerjalan.Tick += new System.EventHandler(this.jamBerjalan_Tick);
-            // 
-            // labelSms
-            // 
-            this.labelSms.AutoSize = true;
-            this.labelSms.Location = new System.Drawing.Point(658, 37);
-            this.labelSms.Name = "labelSms";
-            this.labelSms.Size = new System.Drawing.Size(27, 13);
-            this.labelSms.TabIndex = 6;
-            this.labelSms.Text = "Sms";
             // 
             // MainForm
             // 
@@ -540,8 +474,6 @@
         }
 
         #endregion
-
-        private System.IO.Ports.SerialPort serialPort;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label labelJamBerjalan;
         private System.Windows.Forms.Panel panel2;
@@ -563,21 +495,15 @@
         private System.Windows.Forms.PictureBox fotoSiswa;
         private System.Windows.Forms.DataGridView dgSiswa;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.Button btnTambahSiswa;
+        private System.Windows.Forms.Button btnCari;
         private System.Windows.Forms.Button btnTambahGuru;
-        private System.Windows.Forms.Button btnConnect;
-        private System.Windows.Forms.ComboBox cbPort;
         private System.Windows.Forms.DataGridView dgGuru;
         private System.Windows.Forms.DataGridView dgAbsensi;
-        private System.Windows.Forms.Button btnEditSiswa;
-        private System.Windows.Forms.Button btnEditGuru;
-        private System.Windows.Forms.Button btnLihatSiswa;
-        private System.Windows.Forms.Button btnAlpa;
-        private System.Windows.Forms.Button btnSakit;
-        private System.Windows.Forms.Button btnIzin;
+        private System.Windows.Forms.Button btnNotAktif;
         private System.Windows.Forms.Button btnMasuk;
-        private System.Windows.Forms.Button btnRefresh;
-        private System.Windows.Forms.Label labelSms;
+        private System.Windows.Forms.ComboBox cbkelas;
+        private System.Windows.Forms.Button btnFinger;
+        private System.Windows.Forms.Button coba;
     }
 }
 
